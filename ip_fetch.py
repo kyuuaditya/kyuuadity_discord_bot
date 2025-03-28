@@ -3,6 +3,7 @@ import credentials
 import socket
 import asyncio
 import random
+import requests
 
 # Enable intents
 intents = discord.Intents.default()
@@ -13,11 +14,13 @@ intents.message_content = True  # Allows reading message content
 # Create bot instance
 bot = discord.Client(intents=intents)
 
-# Function to get local IPv4 address
-def get_ipv4():
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    return local_ip
+def get_public_ip():
+    try:
+        response = requests.get("https://api64.ipify.org?format=json", timeout=5)
+        return response.json().get("ip", "Could not fetch IP")
+    except requests.RequestException:
+        return "Could not fetch IP"
+
 
 # Event: When the bot is ready
 @bot.event
@@ -39,7 +42,7 @@ async def on_message(message):
         print(f"    {content}")
 
         if content == "ip":
-            response = f"🖥️ My local IP is: `{get_ipv4()}`"
+            response = f"🖥️ My local IP is: `{get_public_ip()}`"
         elif content in ["hi", "hello"]:
             response = f"👋 Hello {message.author.mention}! How can I help you?"
         elif content.startswith("rps"):
