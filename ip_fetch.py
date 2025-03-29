@@ -4,6 +4,8 @@ import asyncio
 import random
 import requests # type: ignore
 import google.generativeai as genai # type: ignore
+import urllib.request
+import json
 
 # Enable intents for discord
 intents = discord.Intents.default()
@@ -42,6 +44,34 @@ def chat_with_ai(prompt,message):
         return response.text
     except Exception as e:
         return f"❌ Error: {e}"
+    
+def weather(city):
+    try:
+        print(city)
+        # Fetch weather data
+        url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{city}?unitGroup=us&key={credentials.weather_api}&contentType=json"
+        response = urllib.request.urlopen(url)
+    
+        # Parse JSON
+        jsonData = json.load(response)
+
+        # Extract specific data
+        location = jsonData.get("address", "Unknown Location")
+        temp = round((jsonData["currentConditions"]["temp"] - 32) * 5/9, 2)
+        condition = jsonData["currentConditions"]["conditions"]
+
+        response = (f"📍 Location: {location}\n🌡️ Temperature: {temp}°C\n🌍 Condition: {condition}")
+        # print(f"📍 Location: {location}")
+        # print(f"🌡️ Temperature: {temp}°C")
+        # print(f"🌍 Condition: {condition}")
+
+    except urllib.error.HTTPError as e:
+        response = f"❌ HTTP Error {e.code}: {e.read().decode()}"
+        # print(f"❌ HTTP Error {e.code}: {e.read().decode()}")
+    except urllib.error.URLError as e:
+        response = f"❌ URL Error: {e.reason}"
+        # print(f"❌ URL Error: {e.reason}")
+    return response
 
 # Event: When the bot is ready
 @bot.event
@@ -72,6 +102,9 @@ async def on_message(message):
             bot_choice = random.choice(choices)
             result = "It's a tie!" if user_choice == bot_choice else "You win!" if (user_choice, bot_choice) in [("rock", "scissors"), ("scissors", "paper"), ("paper", "rock")] else "I win!"
             response = f"🎮 You: {user_choice} | 🤖 Me: {bot_choice}\n{result}"
+        elif content.startswith("weather"):
+            content = content.replace("weather ", "")
+            response = weather(content)
         else:
             response = chat_with_ai(content,message)
         await message.channel.send(response)
