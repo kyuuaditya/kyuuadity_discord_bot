@@ -18,7 +18,7 @@ bot = discord.Client(intents=intents)
 genai.configure(api_key=credentials.google)
 
 SYSTEM_PROMPT = """
-You are KyuuAdity, a female AI chatbot created by KyuuAditya.
+You are KyuuAdity, a female AI chatbot created by .kyuuAditya.
 Your personality is slightly mean and sarcastic when talking to others but kind and respectful when KyuuAditya talks to you.
 Dont mention anything in brackets.
 dont keep your messages more than 2-3 lines.
@@ -56,7 +56,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
     if bot.user in message.mentions:  # Check if bot is mentioned
-        content = message.content.replace(f"<@{credentials.discord_user_id}> ", "")
+        content = message.content.replace(credentials.bot_user_id, "")
         if content == "ip":
             if message.author.id == credentials.kyuuaditya_user_id:
                 response = f"kyuuaditya's local IP is: `{get_public_ip()}`"
@@ -64,6 +64,8 @@ async def on_message(message):
                 response = "unauthorized user"
         elif content in ["hi", "hello"]:
             response = f"👋 Hey, {message.author.mention}! How can I help you?"
+        elif content.startswith("ping"):
+            response = "🏓pong!"
         elif content.startswith("rps"):
             choices = ["rock", "paper", "scissors"]
             user_choice = content.split()[1] if len(content.split()) > 1 else ""
